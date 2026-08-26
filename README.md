@@ -32,6 +32,25 @@ Bot confirma para o cliente: "Pagamento confirmado! ✅"
 - **SQLite** — persistência das cobranças
 - **Twilio (WhatsApp API)** — notificação automática ao cliente
 
+## Relatório automático diário
+
+Além da cobrança e confirmação de pagamento, o sistema também envia
+automaticamente, todo dia num horário configurável, um resumo por WhatsApp
+para o dono do negócio — sem precisar abrir nenhum painel:
+
+```
+📊 Relatório do dia 26/08/2026
+
+Cobranças criadas: 5
+✅ Aprovadas: 4
+⏳ Pendentes: 1
+
+💰 Total recebido: R$ 340,00
+```
+
+O horário é configurado via variável de ambiente (`REPORT_CRON_TIME`),
+usando o formato padrão de agendamento cron.
+
 ## Estrutura do projeto
 
 ```
@@ -43,7 +62,9 @@ chatbot-pix-whatsapp/
 ├── pix.js                     → cria cobrança Pix + consulta status
 ├── webhook.js                  → recebe confirmação automática de pagamento
 ├── db.js                      → persistência das cobranças (SQLite)
-└── whatsapp.js                → envio de notificação ao cliente
+├── whatsapp.js                → envio de notificação ao cliente
+├── relatorio.js                → monta e envia o resumo diário
+└── agendador.js                → dispara o relatório automaticamente (cron)
 ```
 
 ## Como rodar localmente
@@ -54,7 +75,7 @@ cp .env.example .env   # preencha com seu MP_ACCESS_TOKEN
 npm run dev
 ```
 
-Veja o passo a passo completo em [`pix-integracao.md`](pix-integracao.md).
+Veja o passo a passo completo em [`docs/pix-integracao.md`](docs/pix-integracao.md).
 
 ## Endpoints principais
 
