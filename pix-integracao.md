@@ -1,118 +1,75 @@
-# Chatbot Pix — Integração de Pagamento via Mercado Pago
+# Chatbot Pix WhatsApp
 
-Exemplo funcional de como adicionar cobrança e confirmação automática de
-pagamento Pix ao seu chatbot com IA (chatbot-saas).
+Integração de pagamento via Pix (Mercado Pago) em um chatbot de atendimento
+com IA no WhatsApp — do pedido à confirmação automática, sem intervenção manual.
+
+## O que esse projeto resolve
+
+Pequenos negócios que atendem clientes pelo WhatsApp geralmente enfrentam o
+mesmo problema: confirmar manualmente se um Pix caiu antes de liberar um
+pedido. Este projeto automatiza isso de ponta a ponta.
 
 ## Fluxo completo
 
 ```
 Cliente pede algo no WhatsApp
         ↓
-Bot chama POST /pix/cobranca
+Bot gera cobrança Pix (QR code + código copia-e-cola)
         ↓
-API gera QR code + código "copia e cola"
+Cliente paga
         ↓
-Bot envia isso pro cliente no WhatsApp
+Mercado Pago notifica automaticamente via webhook
         ↓
-Cliente paga o Pix
+Status é atualizado no banco de dados
         ↓
-Mercado Pago chama POST /pix/webhook automaticamente
-        ↓
-Status é atualizado no banco (SQLite)
-        ↓
-Bot avisa o cliente: "Pagamento confirmado! ✅"
+Bot confirma para o cliente: "Pagamento confirmado! ✅"
 ```
 
-## Como rodar
+## Stack utilizada
 
-1. Instale as dependências:
-   ```bash
-   npm install
-   ```
+- **Node.js + Express** — servidor e rotas da API
+- **Mercado Pago SDK** — geração de cobrança Pix e consulta de status
+- **SQLite** — persistência das cobranças
+- **Twilio (WhatsApp API)** — notificação automática ao cliente
 
-2. Copie o arquivo de ambiente e preencha com seu access token:
-   ```bash
-   cp .env.example .env
-   ```
-   Pegue seu `MP_ACCESS_TOKEN` de teste em:
-   https://www.mercadopago.com.br/developers/panel/app
+## Estrutura do projeto
 
-3. Para testar o webhook localmente, exponha seu servidor com ngrok
-   (o Mercado Pago precisa de uma URL pública para te notificar):
-   ```bash
-   npx ngrok http 3000
-   ```
-   Copie a URL gerada (ex: `https://abcd1234.ngrok.app`) para `BASE_URL` no `.env`.
+```
+chatbot-pix-whatsapp/
+├── docs/
+│   └── pix-integracao.md      → detalhes técnicos da integração
+├── server.js                  → entrada da aplicação
+├── mercadoPagoClient.js        → configuração do SDK do Mercado Pago
+├── pix.js                     → cria cobrança Pix + consulta status
+├── webhook.js                  → recebe confirmação automática de pagamento
+├── db.js                      → persistência das cobranças (SQLite)
+└── whatsapp.js                → envio de notificação ao cliente
+```
 
-4. Rode o servidor:
-   ```bash
-   npm run dev
-   ```
-
-## Testando a criação de uma cobrança
+## Como rodar localmente
 
 ```bash
-curl -X POST http://localhost:3000/pix/cobranca \
-  -H "Content-Type: application/json" \
-  -d '{
-    "valor": 49.90,
-    "descricao": "Pedido #123",
-    "clienteId": "5511999999999",
-    "email": "cliente@email.com"
-  }'
+npm install
+cp .env.example .env   # preencha com seu MP_ACCESS_TOKEN
+npm run dev
 ```
 
-Resposta esperada:
-```json
-{
-  "paymentId": "123456789",
-  "status": "pending",
-  "qrCode": "00020126...",
-  "qrCodeBase64": "iVBORw0KGgo..."
-}
-```
+Veja o passo a passo completo em [`pix-integracao.md`](pix-integracao.md).
 
-Envie o `qrCode` (texto copia-e-cola) ou renderize o `qrCodeBase64` como
-imagem para o cliente pagar.
+## Endpoints principais
 
-## Estrutura dos arquivos
+| Rota | Método | O que faz |
+|---|---|---|
+| `/pix/cobranca` | POST | Cria uma cobrança Pix e retorna QR code |
+| `/pix/status/:paymentId` | GET | Consulta manual do status de um pagamento |
+| `/pix/webhook` | POST | Recebido automaticamente pelo Mercado Pago quando o status muda |
 
-```
-chatbot-saas/
-├── docs/
-│   └── pix-integracao.md       (este arquivo)
-├── src/
-│   ├── routes/
-│   │   ├── pix.js
-│   │   └── webhook.js
-│   ├── mercadoPagoClient.js
-│   ├── db.js
-│   └── whatsapp.js
-├── server.js
-├── package.json
-└── .env.example
-```
+## Sobre este projeto
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `server.js` | Entrada da aplicação, registra as rotas |
-| `src/mercadoPagoClient.js` | Configuração do SDK do Mercado Pago |
-| `src/routes/pix.js` | Cria cobrança Pix + consulta status |
-| `src/routes/webhook.js` | Recebe notificação automática de pagamento |
-| `src/db.js` | Persistência das cobranças (SQLite) |
-| `src/whatsapp.js` | Stub de envio de mensagem (troque pela sua integração Twilio real) |
+Desenvolvido como evolução de um chatbot de atendimento com IA já existente,
+adicionando a camada de pagamento que aparece com frequência em demandas reais
+de automação para pequenos negócios.
 
-## Como integrar no seu chatbot-saas existente
+---
 
-- Troque o `db.js` deste exemplo pelas funções que você já tem no seu
-  projeto (só adicione a tabela `cobrancas_pix`).
-- Troque o `whatsapp.js` pela sua implementação real com Twilio.
-- Chame `POST /pix/cobranca` a partir da sua lógica de conversação,
-  quando o bot identificar que o cliente quer fechar um pedido.
-
-## Próximos passos sugeridos
-
-- Adicionar expiração de cobrança (Pix expira em X minutos)
-- Tratar o caso de pagamento rejeitado/cancelado
-- Se for marketplace (dividir valor entre plataforma e prestador), pesquisar
-  o recurso de **split de pagamento** — Asaas tem isso mais pronto que o Mercado Pago
+Desenvolvido por [Marcela Vieira](https://github.com/gmaaahv88)
