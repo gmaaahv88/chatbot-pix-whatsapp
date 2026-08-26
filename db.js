@@ -52,5 +52,36 @@ function atualizarStatusCobranca(paymentId, status) {
     );
   });
 }
+function obterResumoDoDia() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT status, valor
+       FROM cobrancas_pix
+       WHERE date(criado_em) = date('now')`,
+      [],
+      (erro, linhas) => {
+        if (erro) return reject(erro);
 
-module.exports = { salvarCobranca, atualizarStatusCobranca };
+        const resumo = {
+          totalCobrancas: linhas.length,
+          aprovadas: 0,
+          pendentes: 0,
+          valorRecebido: 0,
+        };
+
+        linhas.forEach((linha) => {
+          if (linha.status === 'approved') {
+            resumo.aprovadas += 1;
+            resumo.valorRecebido += linha.valor;
+          } else if (linha.status === 'pending') {
+            resumo.pendentes += 1;
+          }
+        });
+
+        resolve(resumo);
+      }
+    );
+  });
+}
+
+module.exports = { salvarCobranca, atualizarStatusCobranca, obterResumoDoDia };
