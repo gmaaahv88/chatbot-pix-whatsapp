@@ -54,7 +54,7 @@ cp .env.example .env   # preencha com seu MP_ACCESS_TOKEN
 npm run dev
 ```
 
-Veja o passo a passo completo em [`docs/pix-integracao.md`](docs/pix-integracao.md).
+Veja o passo a passo completo em [`pix-integracao.md`](pix-integracao.md).
 
 ## Endpoints principais
 
