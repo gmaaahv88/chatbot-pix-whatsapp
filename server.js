@@ -4,6 +4,7 @@ const pixRoutes = require('./pix');
 const webhookRoutes = require('./webhook');
 const { iniciarAgendador } = require('./agendador');
 const app = express();
+const produtosRoutes = require('./produtos');
 app.use(express.json());
 app.use('/pix', pixRoutes);
 app.use('/pix', webhookRoutes);
@@ -15,3 +16,4 @@ app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 iniciarAgendador();
+app.use('/produtos', produtosRoutes);

@@ -51,6 +51,21 @@ Cobranças criadas: 5
 O horário é configurado via variável de ambiente (`REPORT_CRON_TIME`),
 usando o formato padrão de agendamento cron.
 
+## Alerta automático de estoque baixo
+
+O sistema também monitora o estoque de produtos cadastrados e avisa
+automaticamente, todo dia num horário configurável, quando algum item
+está abaixo da quantidade mínima definida:
+
+```
+⚠️ Alerta de estoque baixo
+
+- Creatina 300g: 2 un. (mínimo: 5)
+```
+
+Se nenhum produto estiver abaixo do mínimo, nenhuma mensagem é enviada
+— evitando notificações desnecessárias.
+
 ## Estrutura do projeto
 
 ```
@@ -61,10 +76,12 @@ chatbot-pix-whatsapp/
 ├── mercadoPagoClient.js        → configuração do SDK do Mercado Pago
 ├── pix.js                     → cria cobrança Pix + consulta status
 ├── webhook.js                  → recebe confirmação automática de pagamento
-├── db.js                      → persistência das cobranças (SQLite)
+├── db.js                      → persistência das cobranças, produtos e estoque
 ├── whatsapp.js                → envio de notificação ao cliente
 ├── relatorio.js                → monta e envia o resumo diário
-└── agendador.js                → dispara o relatório automaticamente (cron)
+├── produtos.js                 → cadastra/atualiza produtos e quantidade
+├── estoque.js                  → verifica produtos com estoque baixo
+└── agendador.js                → dispara relatório e alerta automaticamente (cron)
 ```
 
 ## Como rodar localmente

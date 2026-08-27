@@ -17,6 +17,15 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS produtos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    quantidade INTEGER NOT NULL DEFAULT 0,
+    quantidade_minima INTEGER NOT NULL DEFAULT 5
+  )
+`);
+
 function salvarCobranca({ paymentId, clienteId, valor, status }) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -84,4 +93,36 @@ function obterResumoDoDia() {
   });
 }
 
-module.exports = { salvarCobranca, atualizarStatusCobranca, obterResumoDoDia };
+function definirProduto({ nome, quantidade, quantidadeMinima }) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO produtos (nome, quantidade, quantidade_minima)
+       VALUES (?, ?, ?)
+       ON CONFLICT(nome) DO UPDATE SET
+         quantidade = excluded.quantidade,
+         quantidade_minima = excluded.quantidade_minima`,
+      [nome, quantidade, quantidadeMinima ?? 5],
+      (erro) => (erro ? reject(erro) : resolve())
+    );
+  });
+}
+
+function obterProdutosComEstoqueBaixo() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT nome, quantidade, quantidade_minima
+       FROM produtos
+       WHERE quantidade <= quantidade_minima`,
+      [],
+      (erro, linhas) => (erro ? reject(erro) : resolve(linhas))
+    );
+  });
+}
+
+module.exports = {
+  salvarCobranca,
+  atualizarStatusCobranca,
+  obterResumoDoDia,
+  definirProduto,
+  obterProdutosComEstoqueBaixo,
+};
