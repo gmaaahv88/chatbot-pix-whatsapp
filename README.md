@@ -29,8 +29,9 @@ Bot confirma para o cliente: "Pagamento confirmado! ✅"
 
 - **Node.js + Express** — servidor e rotas da API
 - **Mercado Pago SDK** — geração de cobrança Pix e consulta de status
-- **SQLite** — persistência das cobranças
-- **Twilio (WhatsApp API)** — notificação automática ao cliente
+- **SQLite** — persistência das cobranças e produtos
+- **Twilio (WhatsApp API)** — envio real de notificações ao cliente/dono do negócio
+- **node-cron** — agendamento automático de relatório e verificação de estoque
 
 ## Relatório automático diário
 
