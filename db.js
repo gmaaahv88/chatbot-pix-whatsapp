@@ -119,10 +119,54 @@ function obterProdutosComEstoqueBaixo() {
   });
 }
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS agendamentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cliente_id TEXT NOT NULL,
+    servico TEXT NOT NULL,
+    data TEXT NOT NULL,
+    hora TEXT NOT NULL,
+    criado_em TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(data, hora)
+  )
+`);
+
+function criarAgendamento({ clienteId, servico, data, hora }) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO agendamentos (cliente_id, servico, data, hora)
+       VALUES (?, ?, ?, ?)`,
+      [clienteId, servico, data, hora],
+      function (erro) {
+        if (erro) {
+          // Se o erro for de horário duplicado, avisa isso especificamente
+          if (erro.message.includes('UNIQUE')) {
+            return reject(new Error('HORARIO_OCUPADO'));
+          }
+          return reject(erro);
+        }
+        resolve({ id: this.lastID, clienteId, servico, data, hora });
+      }
+    );
+  });
+}
+
+function listarAgendamentosDoDia(data) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT hora, servico FROM agendamentos WHERE data = ? ORDER BY hora`,
+      [data],
+      (erro, linhas) => (erro ? reject(erro) : resolve(linhas))
+    );
+  });
+}
+
 module.exports = {
   salvarCobranca,
   atualizarStatusCobranca,
   obterResumoDoDia,
   definirProduto,
   obterProdutosComEstoqueBaixo,
+  criarAgendamento,
+  listarAgendamentosDoDia,
 };

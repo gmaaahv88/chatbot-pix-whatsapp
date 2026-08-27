@@ -5,6 +5,7 @@ const webhookRoutes = require('./webhook');
 const { iniciarAgendador } = require('./agendador');
 const app = express();
 const produtosRoutes = require('./produtos');
+const agendamentosRoutes = require('./agendamentos');
 app.use(express.json());
 app.use('/pix', pixRoutes);
 app.use('/pix', webhookRoutes);
@@ -17,3 +18,4 @@ app.listen(PORT, () => {
 });
 iniciarAgendador();
 app.use('/produtos', produtosRoutes);
+app.use('/agendamentos', agendamentosRoutes);

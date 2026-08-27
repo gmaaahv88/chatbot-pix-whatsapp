@@ -67,6 +67,23 @@ está abaixo da quantidade mínima definida:
 Se nenhum produto estiver abaixo do mínimo, nenhuma mensagem é enviada
 — evitando notificações desnecessárias.
 
+## Agendamento automático via WhatsApp
+
+O sistema também permite que o cliente consulte horários disponíveis e
+agende diretamente, sem intervenção manual. Uma regra no próprio banco de
+dados impede que dois agendamentos ocupem o mesmo horário — sem precisar
+checar isso manualmente no código.
+
+```
+✅ Agendamento confirmado!
+
+📅 2026-08-28 às 14:00
+💈 Corte de cabelo
+```
+
+Se o horário já estiver ocupado, o sistema recusa automaticamente e
+sugere escolher outro.
+
 ## Estrutura do projeto
 
 ```
@@ -77,11 +94,12 @@ chatbot-pix-whatsapp/
 ├── mercadoPagoClient.js        → configuração do SDK do Mercado Pago
 ├── pix.js                     → cria cobrança Pix + consulta status
 ├── webhook.js                  → recebe confirmação automática de pagamento
-├── db.js                      → persistência das cobranças, produtos e estoque
-├── whatsapp.js                → envio de notificação ao cliente
+├── db.js                      → persistência de cobranças, produtos, estoque e agendamentos
+├── whatsapp.js                → envio real de notificação via Twilio
 ├── relatorio.js                → monta e envia o resumo diário
 ├── produtos.js                 → cadastra/atualiza produtos e quantidade
 ├── estoque.js                  → verifica produtos com estoque baixo
+├── agendamentos.js             → consulta disponibilidade e cria agendamentos
 └── agendador.js                → dispara relatório e alerta automaticamente (cron)
 ```
 
@@ -93,7 +111,7 @@ cp .env.example .env   # preencha com seu MP_ACCESS_TOKEN
 npm run dev
 ```
 
-Veja o passo a passo completo em [`pix-integracao.md`](pix-integracao.md).
+Veja o passo a passo completo em [`docs/pix-integracao.md`](docs/pix-integracao.md).
 
 ## Endpoints principais
 
